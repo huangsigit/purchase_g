@@ -1,0 +1,175 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.egao.common.system.mapper.QuoteMapper">
+
+    <select id="select" resultType="java.util.HashMap">
+        select q.*,sm.supplier_name from pur_quote q left join pur_supplier_mark sm on sm.supplier_id = q.supplier_id
+        where 1 = 1
+        <if test="goods_no!=null and goods_no!=''">
+            and q.goods_no like '%${goods_no}%'
+        </if>
+        <if test="supplier_id!=null and supplier_id!=''">
+            and q.supplier_id = #{supplier_id}
+        </if>
+        <if test="price_status!=null">
+            and q.price_status = #{price_status}
+        </if>
+        <if test="startTime!=null and endTime!=''">
+            and q.quote_time BETWEEN #{startTime} and #{endTime}
+        </if>
+        order by q.quote_time desc
+        limit #{page}, #{rows}
+    </select>
+
+    <select id="selectCount" resultType="java.lang.Integer">
+        select count(*) from(
+            select * from pur_quote q
+            where 1 = 1
+            <if test="goods_no!=null and goods_no!=''">
+                and q.goods_no like '%${goods_no}%'
+            </if>
+            <if test="supplier_id!=null and supplier_id!=''">
+                and q.supplier_id = #{supplier_id}
+            </if>
+            <if test="price_status!=null">
+                and q.price_status = #{price_status}
+            </if>
+            <if test="startTime!=null and endTime!=''">
+                and q.quote_time BETWEEN #{startTime} and #{endTime}
+            </if>
+        )t
+    </select>
+
+    <select id="selectById" resultType="java.util.HashMap">
+        select * from pur_quote where id = #{id}
+    </select>
+
+    <select id="selectByQuoteTime" resultType="java.util.HashMap">
+        select * from pur_quote q where q.quote_time BETWEEN #{startTime} and #{endTime} order by q.quote_time desc
+    </select>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id" keyColumn="id">
+        <selectKey resultType="int" order="AFTER" keyProperty="id">
+            SELECT LAST_INSERT_ID() as id
+        </selectKey>
+        insert into pur_quote(goods_no, supplier_id, colour, size, purchase_price, price_status, quote_time)
+        values(#{goods_no}, #{supplier_id}, #{colour}, #{size}, #{purchase_price}, #{price_status}, #{quote_time})
+    </insert>
+
+    <update id="update">
+        update pur_quote
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="goods_no!=null and goods_no!=''">
+                goods_no = #{goods_no},
+            </if>
+            <if test="supplier_id!=null and supplier_id!=''">
+                supplier_id = #{supplier_id},
+            </if>
+            <if test="colour!=null and colour!=''">
+                colour = #{colour},
+            </if>
+            <if test="size!=null and size!=''">
+                size = #{size},
+            </if>
+            <if test="purchase_price!=null and purchase_price!=''">
+                purchase_price = #{purchase_price},
+            </if>
+            <if test="price_status!=null">
+                price_status = #{price_status},
+            </if>
+            <if test="quote_time!=null and quote_time!=''">
+                quote_time = #{quote_time}
+            </if>
+        </trim>
+        where id = #{id}
+    </update>
+
+    <delete id="deleteById">
+        delete from pur_quote where id = #{id}
+    </delete>
+
+    <update id="updatePriceStatusById">
+        update pur_quote set price_status = #{price_status} where id = #{id}
+    </update>
+
+
+    <select id="selectBySupplierIdAndGoogsNo" resultType="java.util.HashMap">
+        select * from pur_quote where supplier_id = #{supplier_id} and goods_no = #{goods_no} and colour = #{colour} and size = #{size} and quote_time = #{quote_time}
+    </select>
+
+
+    <select id="selectOrderSummary" resultType="java.util.HashMap">
+        select osmt.*,q.purchase_price,q.price_status,q.id,q.quote_time from (
+            select osm.* from(
+                select o.supplier_id,o.goods_no,o.colour,o.size,sum(o.num) num,o.purchase_status,o.order_time,o.outCreate_time from pur_order o
+                where 1 = 1
+                <if test="purchase_status!=null">
+                    and o.purchase_status = #{purchase_status}
+                </if>
+                GROUP BY o.supplier_id,o.goods_no,o.colour,o.size,o.num,o.purchase_status,o.order_time
+            )osm
+            GROUP BY osm.supplier_id,osm.goods_no,osm.colour,osm.size,osm.num,osm.purchase_status
+        )osmt inner JOIN
+        (
+            select * from pur_quote q where 1 = 1
+            <if test="goods_no!=null and goods_no!=''">
+                and q.goods_no like '%${goods_no}%'
+            </if>
+            <if test="supplier_id!=null and supplier_id!=''">
+                and q.supplier_id = #{supplier_id}
+            </if>
+            <if test="price_status!=null">
+                and q.price_status = #{price_status}
+            </if>
+            <if test="startTime!=null and endTime!=''">
+                and q.quote_time BETWEEN #{startTime} and #{endTime}
+            </if>
+            <if test="no_goods_time!=null and no_goods_time!=''">
+                and q.quote_time &lt; #{no_goods_time}
+            </if>
+        )q
+        on q.supplier_id = osmt.supplier_id and q.goods_no = osmt.goods_no and q.colour = osmt.colour and q.size = osmt.size and q.quote_time = osmt.order_time
+        order by osmt.outCreate_time desc
+        limit #{page}, #{rows}
+    </select>
+
+
+    <select id="selectOrderSummaryCount" resultType="java.lang.Integer">
+        select count(*) from(
+            select osmt.*,q.purchase_price,q.price_status,q.id,q.quote_time from (
+                select osm.*,t.chinese chinese_colour from(
+                    select o.supplier_id,o.goods_no,o.colour,o.size,sum(o.num) num,o.purchase_status,o.order_time from pur_order o
+                    where 1 = 1
+                    <if test="purchase_status!=null">
+                        and o.purchase_status = #{purchase_status}
+                    </if>
+                    GROUP BY o.supplier_id,o.goods_no,o.colour,o.size,o.num,o.purchase_status,o.order_time
+                )osm LEFT JOIN pur_translation t on t.local_language = osm.colour
+                GROUP BY osm.supplier_id,osm.goods_no,osm.colour,osm.size,osm.num,osm.purchase_status
+                )osmt inner JOIN(
+                    select * from pur_quote q where 1 = 1
+                    <if test="goods_no!=null and goods_no!=''">
+                        and q.goods_no like '%${goods_no}%'
+                    </if>
+                    <if test="supplier_id!=null and supplier_id!=''">
+                        and q.supplier_id = #{supplier_id}
+                    </if>
+                    <if test="price_status!=null">
+                        and q.price_status = #{price_status}
+                    </if>
+                    <if test="startTime!=null and endTime!=''">
+                        and q.quote_time BETWEEN #{startTime} and #{endTime}
+                    </if>
+                    <if test="no_goods_time!=null and no_goods_time!=''">
+                        and q.quote_time &lt; #{no_goods_time}
+                    </if>
+                )q
+            on q.supplier_id = osmt.supplier_id and q.goods_no = osmt.goods_no and q.colour = osmt.colour and q.size = osmt.size and q.quote_time = osmt.order_time
+        )oo
+    </select>
+
+
+
+
+
+</mapper>

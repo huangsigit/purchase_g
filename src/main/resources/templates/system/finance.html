@@ -1,0 +1,1008 @@
+﻿<!DOCTYPE html>
+<html xmlns:v-bind="http://www.w3.org/1999/xhtml">
+<head>
+    <:include file="../common/css.html" title="财务单"/>
+    <script src="https://cdn.staticfile.org/vue/2.2.2/vue.min.js"></script>
+</head>
+<body>
+<style>
+    .layui-form-label{
+        width: 100px;
+    }
+    .layui-input-block {
+        margin-left: 130px;
+        min-height: 36px
+    }
+
+    .layui-form.layui-form-info .layui-form-item {
+        margin-bottom: 0 !important;
+    }
+
+    .layui-input-block.layui-word-aux {
+        word-break: break-all;
+        padding: 11px 0 !important;
+        box-sizing: border-box !important;
+    }
+
+</style>
+
+<!-- 正文开始 -->
+<div class="layui-fluid" lay-filter="searchForm">
+    <div class="layui-card">
+        <div class="layui-card-body">
+            <!-- 表格工具栏 -->
+
+            <form class="layui-form toolbar" lay-filter="userTbSearchForm">
+
+                <div class="layui-form-item">
+
+                    <div class="layui-inline">
+                        <label class="layui-form-label w-auto">站点:</label>
+                        <div class="layui-input-inline">
+                            <select name="shop_id" id="shop_id" lay-search="" class="layui-input">
+                                <option value="">请选择</option>
+                                <:for items="${shopList}" var="shop">
+                                    <option value="${shop.shop_id}">${shop.shop_name}</option>
+                                </:for>
+                            </select>
+                        </div>
+                    </div>
+
+
+                    <div class="layui-inline">
+                        <label class="layui-form-label w-auto">Ezsale系统订单:</label>
+                        <div class="layui-input-inline">
+                            <input name="outbound_order_no" id="outbound_order_no" class="layui-input" placeholder="输入Ezsale系统订单"/>
+                        </div>
+                    </div>
+
+                    <div class="layui-inline">
+                        <label class="layui-form-label w-auto">货号:</label>
+                        <div class="layui-input-inline">
+                            <input name="goods_no" id="goods_no" class="layui-input" placeholder="输入货号"/>
+                        </div>
+                    </div>
+
+                    <div class="layui-inline">
+                        <label class="layui-form-label w-auto">虾皮订单号:</label>
+                        <div class="layui-input-inline">
+                            <input name="platform_order_number" id="platform_order_number" class="layui-input" placeholder="输入虾皮订单号"/>
+                        </div>
+                    </div>
+
+                    <div class="layui-inline">
+                        <label class="layui-form-label w-auto">运单号:</label>
+                        <div class="layui-input-inline">
+                            <input name="logist_num" id="logist_num" class="layui-input" placeholder="输入运单号"/>
+                        </div>
+                    </div>
+
+
+
+
+                    <div class="layui-inline">
+                        <!--0待采购 1待发货 2已发货-->
+                        <label class="layui-form-label w-auto">采购状态:</label>
+                        <div class="layui-input-inline">
+                            <select name="purchase_status" id="purchase_status" lay-search="">
+                                <option value="">请选择</option>
+                                <option value="0" selected="selected">待采购</option>
+                                <option value="1">待发货</option>
+                                <option value="2">已发货</option>
+                                <option value="3">已作废</option>
+                            </select>
+                        </div>
+                    </div>
+
+
+
+                    <div class="layui-inline">
+                        <label class="layui-form-label w-auto">日期:</label>
+                        <div class="layui-input-inline">
+                            <input type="text" class="layui-input" id="searchTime" name="searchTime" placeholder="默认查询近一周数据" lay-search>
+                        </div>
+                    </div>
+
+
+
+
+                    <div class="layui-inline">
+                        <button class="layui-btn icon-btn" lay-filter="userTbSearch" lay-submit>
+                            <i class="layui-icon">&#xe615;</i>搜索
+                        </button>
+                        <!--<button id="syncBtn" class="layui-btn icon-btn" lay-filter="syncBtn" lay-submit>
+                            <i class="layui-icon">&#xe654;</i>同步
+                        </button>-->
+
+                    </div>
+
+                </div>
+            </form>
+
+
+
+            <!-- 数据表格 -->
+            <table id="channelDataTable" lay-filter="channelDataTable"></table>
+        </div>
+    </div>
+</div>
+
+<!-- 表格操作列 -->
+<script type="text/html" id="userTbBar">
+    <a class="layui-btn layui-btn-primary layui-btn-xs" lay-event="edit" >修改</a>
+    <a class="layui-btn layui-btn-danger layui-btn-xs"
+       data-dropdown="#userTbDelDrop{{d.LAY_INDEX}}" no-shade="true">删除</a>
+    <!--<a class="layui-btn layui-btn-xs" lay-event="reset">重置密码</a>-->
+    <div class="dropdown-menu-nav dropdown-popconfirm dropdown-top-right layui-hide"
+         id="userTbDelDrop{{d.LAY_INDEX}}"
+         style="max-width: 200px;white-space: normal;min-width: auto;margin-left: 10px;">
+        <div class="dropdown-anchor"></div>
+        <div class="dropdown-popconfirm-title">
+            <i class="layui-icon layui-icon-help"></i>
+            <!--确定要删除{{d.nickName}}吗？-->
+            确定要删除吗？
+        </div>
+        <div class="dropdown-popconfirm-btn">
+            <a class="layui-btn" btn-cancel>取消</a>
+            <a class="layui-btn layui-btn-normal" lay-event="del">确定</a>
+        </div>
+    </div>
+</script>
+<!-- 表格状态列 -->
+<script type="text/html" id="userTbState">
+    <input type="checkbox" lay-filter="userTbStateCk" value="{{d.id}}" lay-skin="switch"
+           lay-text="可更新|已锁定" {{d.lock_status==1?'checked':''}}/>
+</script>
+
+
+
+<!-- 表单弹窗 -->
+<script type="text/html" id="editFormDialog">
+    <form id="editForm" lay-filter="editForm" class="layui-form model-form">
+
+        <input name="id" type="hidden"/>
+
+        <div class="layui-form-item">
+            <label class="layui-form-label layui-form-required">货号:</label>
+            <div class="layui-input-block">
+                <input name="goods_no" placeholder="请输入货号" class="layui-input"
+                       lay-verType="tips" required/>
+            </div>
+        </div>
+
+
+        <div class="layui-form-item">
+            <label class="layui-form-label layui-form-required">供应商名称:</label>
+            <div class="layui-input-block">
+                <input name="supplier_name" placeholder="请输入供应商名称" class="layui-input"
+                       lay-verType="tips" required/>
+            </div>
+        </div>
+
+
+
+
+        <div class="layui-form-item text-right">
+            <button class="layui-btn layui-btn-primary" type="button" ew-event="closeDialog">取消</button>
+            <button class="layui-btn" lay-filter="editSubmit" lay-submit>保存</button>
+        </div>
+
+
+
+    </form>
+</script>
+
+
+<!-- 批量发货表单弹窗 -->
+<script type="text/html" id="expressFormDialog">
+    <form id="expressForm" lay-filter="expressForm" class="layui-form model-form">
+
+        <input name="id" type="hidden"/>
+
+        <div class="layui-form-item">
+            <label class="layui-form-label layui-form-required">快递公司:</label>
+            <div class="layui-input-block">
+                <input id="company" name="company" placeholder="请输入快递公司" class="layui-input"
+                       lay-verType="tips" required/>
+            </div>
+        </div>
+
+
+        <div class="layui-form-item">
+            <label class="layui-form-label layui-form-required">快递单号:</label>
+            <div class="layui-input-block">
+                <input id="express_number" name="express_number" placeholder="请输入快递单号" class="layui-input"
+                       lay-verType="tips" required/>
+            </div>
+        </div>
+
+        <div class="layui-form-item">
+            <label class="layui-form-label layui-form-required">快递费用:</label>
+            <div class="layui-input-block">
+                <input id="fees" name="fees" placeholder="请输入快递费用" class="layui-input" type="number"
+                       lay-verType="tips" required/>
+            </div>
+        </div>
+
+        <div class="layui-form-item">
+            <label class="layui-form-label">发货日期</label>
+            <div class="layui-input-block">
+                <input name="express_time" type="text" class="layui-input" id="expressTime" placeholder="yyyy-MM-dd" lay-verify="required">
+            </div>
+        </div>
+
+
+        <div class="layui-form-item text-right">
+            <button class="layui-btn layui-btn-primary" type="button" ew-event="closeDialog">取消</button>
+            <button class="layui-btn" lay-filter="expressSubmit" lay-submit>保存</button>
+        </div>
+
+
+
+    </form>
+</script>
+
+
+
+
+<:include file="../common/js.html"/>
+<script>
+    layui.use(['layer', 'form', 'table', 'tableX', 'util', 'admin', 'xmSelect', 'formX', 'dropdown', 'upload', 'laydate'], function () {
+        var $ = layui.jquery;
+        var layer = layui.layer;
+        var form = layui.form;
+        var table = layui.table;
+        var tableX = layui.tableX;
+        var util = layui.util;
+        var admin = layui.admin;
+        var xmSelect = layui.xmSelect;
+        var laydate = layui.laydate;
+
+        /* 渲染表格 */
+        var insTb = table.render({
+            elem: '#channelDataTable',
+            url: 'finance/page',
+            page: true,
+            id:'channelDataTable',
+            limits: [10,20,30,50,70,100,1000],
+            where:{
+                purchase_status: $("#purchase_status").val()
+            },
+            // height: 'full-100',
+            toolbar: ['<p>',
+                // '<button lay-event="batchPurchase" class="layui-btn layui-btn-sm layui-btn-danger icon-btn"><i class="layui-icon"></i>批量采购</button>&nbsp;',
+                // '<button lay-event="batchExpress" data-method="confirmTrans" class="layui-btn layui-btn-sm layui-btn-danger icon-btn"><i class="layui-icon"></i>批量发货</button>&nbsp;',
+                // '<button lay-event="batchVoid" class="layui-btn layui-btn-sm layui-btn-danger icon-btn"><i class="layui-icon"></i>作废</button>&nbsp;',
+                // '<button lay-event="add" class="layui-btn layui-btn-sm icon-btn"><i class="layui-icon">&#xe654;</i>添加</button>&nbsp;',
+                // '<button lay-event="del" class="layui-btn layui-btn-sm layui-btn-danger icon-btn"><i class="layui-icon"></i>删除</button>&nbsp;',
+                // '<button lay-event="import" class="layui-btn layui-btn-sm layui-btn-warm icon-btn"><i class="layui-icon">&#xe681;</i>导入</button>',
+                '<button lay-event="export" class="layui-btn layui-btn-sm layui-btn-warm icon-btn"><i class="layui-icon"></i>导出</button>',
+                '</p>'].join(''),
+            defaultToolbar: false,
+            cellMinWidth: 100,
+            defaultToolbar: ['filter', 'exports'],
+            limit:50,
+            done: function (res, curr, count) {
+                console.log("888888:"+$("#purchase_status").val())
+
+            },
+            cols: [[
+                // {type: 'checkbox'},
+                {field: 'outCreate_time', title: '订单日期', minWidth: 105},
+                {field: 'outbound_order_no', title: 'Ezsale系统订单id', minWidth: 120},
+                {field: 'shop_name', title: '站点', minWidth: 120},
+                {field: 'goods_no', title: '货号', width: 80},
+                {field: 'supplier_name', title: '供应商', width: 90},
+                {field: 'chinese_colour', title: '颜色', width: 60},
+                {field: 'size', title: '尺码', width: 60},
+                {field: 'num', title: '数量', width: 60},
+                {field: 'platform_order_number', title: '虾皮订单号', minWidth: 120},
+                {field: 'logist_num', title: '运单号'},
+                {field: 'purchase_price', title: '采购单价'},
+                {field: 'purchase_status_str', title: '采购状态', width: 88},
+                // {field: 'void_status_str', title: '作废状态', width: 88},
+                {field: 'express_time', title: '发货日期'},
+                {field: 'express_number', title: '快递单号'},
+                // {field: 'fees', title: '运费', width: 60},
+                {field: 'fee', title: '运费', width: 70},
+                {field: 'total_cost', title: '总成本', width: 80},
+                // {field: 'lock_status', title: '更新状态', templet: '#userTbState', width: 120},
+                // {title: '操作', toolbar: '#userTbBar', align: 'center', fixed: 'right', width: 120}
+            ]]
+        });
+
+
+
+
+
+        /* 表格搜索 */
+        form.on('submit(userTbSearch)', function (data) {
+            insTb.reload({where: data.field, page: {curr: 1}});
+            return false;
+        });
+
+
+        /* 同步数据 */
+        form.on('submit(syncBtn)', function (data) {
+            // showEditModel()
+
+            console.log("同步数据 sync:"+JSON.stringify(data))
+
+            admin.req('order/syncData', data.field, function (res) {
+                // layer.close(loadIndex);
+                console.log("同步数据 res:"+JSON.stringify(res))
+                // layer.close(loadIndex);
+                if (0 === res.code) {
+                    // layer.close(dIndex);
+                    layer.msg(res.msg, {icon: 1});
+                    insTb.reload({page: {curr: 1}});
+                } else {
+                    console.log("失败了")
+                    // layer.close(loadIndex);
+                    layer.msg(res.msg, {icon: 2, anim: 6});
+                }
+            }, 'POST');
+            return false;
+
+        });
+
+
+
+        // 清空
+        form.on('submit(clearBtn)', function (data) {
+
+            console.log("清空...")
+            //执行清空
+            $("#itemsId").empty();
+            $("#jobNumber").empty();
+            $("#adAccount").empty();
+            // $("#adChannels").empty();
+            $("#adChannels").val("");
+            $("#searchTime").val(""); // 清空日期
+            // form.render("select");
+
+            // layui.form.render("select");//重新渲染 固定写法
+
+
+
+            form.render("select");//重新渲染 固定写法
+
+        });
+
+        /* 表格工具条点击事件 */
+        table.on('tool(channelDataTable)', function (obj) {
+            if ('edit' === obj.event) { // 修改
+                showEditModel(obj.data);
+            } else if ('del' === obj.event) { // 删除
+                doDel(obj);
+            } else if ('reset' === obj.event) { // 重置密码
+                admin.prompt({formType: 1, title: '请输入密码'}, function (value, i) {
+                    layer.close(i);
+                    var loadIndex = layer.load(2);
+                    $.post('user/psw/reset', {id: obj.data.userId, password: value}, function (res) {
+                        layer.close(loadIndex);
+                        if (0 === res.code) {
+                            layer.msg(res.msg, {icon: 1});
+                        } else {
+                            layer.msg(res.msg, {icon: 2, anim: 6});
+                        }
+                    });
+                });
+            }
+        });
+
+        /* 表格头工具栏点击事件 */
+        table.on('toolbar(channelDataTable)', function (obj) {
+            if ('add' === obj.event) { // 添加
+                // console.log("obj obj obj:"+JSON.stringify(obj))
+                showEditModel();
+                var itemId = $("#item_id").val();
+                console.log("....1.11...itemId："+itemId)
+
+            } else if ('del' === obj.event) { // 删除
+
+                var checkRows = table.checkStatus('channelDataTable');
+
+                if (!checkRows || !checkRows.data || 0 === checkRows.data.length) {
+                    return layer.msg('请选择要删除的数据', {icon: 2, anim: 6});
+                }
+                var ids = checkRows.data.map(function (d) {
+                    return d.id;
+                });
+                doDel({ids: ids});
+            } else if ('editOverall' === obj.event) {
+                showEditOverallModel();
+            } else if ('import' === obj.event) {
+                showImport();
+            }else if ('batchPurchase' === obj.event) { // 批量采购
+
+                var checkRows = table.checkStatus('channelDataTable');
+
+                console.log("checkRows.data:"+JSON.stringify(checkRows.data))
+
+                if (!checkRows || !checkRows.data || 0 === checkRows.data.length) {
+                    return layer.msg('请选择要采购的数据', {icon: 2, anim: 6});
+                }
+                var ids = checkRows.data.map(function (d) {
+                    return d.id;
+                });
+
+                // console.log("rows0:"+JSON.stringify(checkRows))
+
+
+                var noPriceList = []; // 未确认状态
+                var noPurchaseList = []; // 不是待采购状态
+                var purchaseList = []; // 待采购状态
+                console.log("checkRows.data.length:"+checkRows.data.length)
+                console.log("checkRows.data:"+JSON.stringify(checkRows.data))
+                for(var i = 0; i < checkRows.data.length; i++){
+                    var row = checkRows.data[i];
+                    if(row.purchase_status == 0){ // 待采购状态
+                        purchaseList[purchaseList.length] = row.outbound_order_id + "," + row.goods_id;
+                    }else{ // 不是待采购状态
+                        noPurchaseList[noPurchaseList.length] = row.outbound_order_no;
+                    }
+
+                    if(!row.price_status || row.price_status == 0){ // 报价未确认状态
+                        noPriceList[noPriceList.length] = row.outbound_order_no;
+                        console.log("noPriceList："+noPriceList)
+                    }
+                }
+
+                if(noPriceList.length > 0){ // 未确认报价的订单
+                    popUp(noPriceList, "报价单未确认");
+                    return;
+                }
+
+
+                if(noPurchaseList.length > 0){ // 弹窗提示未采购订单
+                    // 拼接弹窗内容
+                    popUp(noPurchaseList, "不是待采购状态");
+                }else{
+                    console.log("noPurchaseList:"+JSON.stringify(noPurchaseList))
+                    console.log("purchaseList:"+JSON.stringify(purchaseList))
+
+                    batchPurchase({goodsIds: purchaseList});
+                }
+            }else if ('batchExpress' === obj.event) { // 批量发货
+                var checkRows = table.checkStatus('channelDataTable');
+
+                console.log("checkRows.data:"+JSON.stringify(checkRows.data))
+
+                if (!checkRows || !checkRows.data || 0 === checkRows.data.length) {
+                    return layer.msg('请选择要发货的订单', {icon: 2, anim: 6});
+                }
+                var itemIds = checkRows.data.map(function (d) {
+                    return d.item_id;
+                });
+
+                var noExpressList = [];
+                var purchaseList = [];
+                console.log("checkRows.data.length:"+checkRows.data.length)
+                for(var i = 0; i < checkRows.data.length; i++){
+                    var row = checkRows.data[i];
+                    if(row.purchase_status == 1){ // 待发货状态
+                        purchaseList[purchaseList.length] = row.outbound_order_id + "," + row.goods_id;
+                    }else{ // 不是待发货状态
+                        noExpressList[noExpressList.length] = row.outbound_order_no;
+                        // console.log("rows1:"+JSON.stringify(rows))
+                    }
+                }
+
+                if(noExpressList.length > 0){
+                    // 拼接弹窗内容
+                    popUp(noExpressList, "不是待发货状态");
+                    return;
+                }
+
+
+
+                var noPriceList = [];
+                for(var i = 0; i < checkRows.data.length; i++){
+                    var row = checkRows.data[i];
+                    if(row.price_status == 0){ // 未确认则记录订单号
+                        noPriceList[noPriceList.length] = row.outbound_order_no;
+                        // return row.outbound_order_no;
+                        console.log("noPriceList1:"+JSON.stringify(noPriceList))
+                    }
+                }
+
+                if(noPriceList.length > 0){
+                    // 拼接弹窗内容
+                    popUp(noPriceList, "报价单未确认");
+                    return;
+                }
+
+
+
+                // 如果“报价单”中未确认当日单价，则弹窗提醒采购人员，并且不弹出“批量发货窗口”
+                if(noPriceList.length > 0){
+
+                    // 拼接弹窗内容
+                    var content = "";
+                    for(var i = 0; i < rows.length; i++){
+                        if(content.length > 0){
+                            content = content + "<br>";
+                        }
+                        content = content + rows[i] + "未确认";
+                    }
+
+                    layer.msg(content, {
+                        time: 10000, //20s后自动关闭
+                        btn: [ '知道了']
+                        ,btnAlign: 'c' //按钮居中
+                        ,yes: function(){
+                            layer.closeAll();
+                        }
+                    });
+
+                }else{
+                    batchExpressModel(itemIds);
+                }
+            }else if ('batchVoid' === obj.event) { // 批量作废
+
+                var checkRows = table.checkStatus('channelDataTable');
+
+                if (!checkRows || !checkRows.data || 0 === checkRows.data.length) {
+                    return layer.msg('请选择要采购的数据', {icon: 2, anim: 6});
+                }
+                var itemIds = checkRows.data.map(function (d) {
+                    return d.item_id;
+                });
+
+
+                var voidList = [];
+                console.log("checkRows.data.length:"+checkRows.data.length)
+                for(var i = 0; i < checkRows.data.length; i++){
+                    var row = checkRows.data[i];
+                    // if(row.purchase_status == 0){
+                    voidList[voidList.length] = row.outbound_order_id + "," + row.goods_id;
+                    // }
+                }
+
+
+                console.log("voidList："+JSON.stringify(voidList))
+                batchVoid({goodsIds: voidList});
+            }else if ('export' === obj.event) {
+                showExport();
+            }
+
+
+
+        });
+
+
+
+        /* 导出到excel */
+        function showExport() {
+
+            console.log("showExport 导出到")
+
+
+            var shop_id = $("#shop_id").val();
+            var outbound_order_no = $("#outbound_order_no").val();
+            var goods_no = $("#goods_no").val();
+            var platform_order_number = $("#platform_order_number").val();
+            var logist_num = $("#logist_num").val();
+            var purchase_status = $("#purchase_status").val();
+            var searchTime = $("#searchTime").val();
+            var page = $(".layui-laypage-skip").find("input").val();
+            var limit = $(".layui-laypage-limits").find("option:selected").val();
+
+/*
+            console.log("shop_id："+shop_id)
+            console.log("outbound_order_no："+outbound_order_no)
+            console.log("goods_no："+goods_no)
+            console.log("platform_order_number：" + platform_order_number)
+            console.log("logist_num：" + logist_num)
+            console.log("purchase_status：" + purchase_status)
+            console.log("searchTime：" + searchTime)
+            console.log("page：" + page)
+            console.log("limit：" + limit)
+*/
+
+
+
+            window.open("order/exportExcel?shop_id="+shop_id+"&outbound_order_no="+outbound_order_no+"&goods_no="
+                +goods_no+"&platform_order_number="+platform_order_number+"&logist_num="+logist_num+"&purchase_status="
+                +purchase_status+"&searchTime="+searchTime+"&page="+page+"&limit="+limit);
+
+        }
+
+
+        // 拼接弹窗内容
+        function popUp(list, suffix){
+            // 拼接弹窗内容
+            var content = "";
+            for(var i = 0; i < list.length; i++){
+                if(content.length > 0){
+                    content = content + "<br>";
+                }
+                content = content + list[i] + suffix;
+            }
+            // 弹窗
+            layer.msg(content, {
+                time: 10000, //20s后自动关闭
+                btn: [ '知道了']
+                ,btnAlign: 'c' //按钮居中
+                ,yes: function(){
+                    layer.closeAll();
+                }
+            });
+        }
+
+
+
+        /* 批量采购 */
+        function batchPurchase(obj) {
+            // if (obj.orderIds) { // 批量采购
+                admin.confirm('确定要采购选中数据吗？', function (i) {
+                    layer.close(i);
+                    var loadIndex = layer.load(2);
+                    admin.req('order/batchPurchase', JSON.stringify(obj.goodsIds), function (res) {
+                        layer.close(loadIndex);
+                        if (0 === res.code) {
+                            layer.msg(res.msg, {icon: 1});
+                            insTb.reload({page: {curr: 1}});
+                        } else {
+                            layer.msg(res.msg, {icon: 2, anim: 6});
+                        }
+                    }, 'post');
+                });
+            // }
+        }
+
+
+        /* 批量作废 */
+        function batchVoid(obj) {
+            // if (obj.itemIds) { // 批量采购
+                admin.confirm('确定要作废选中数据吗？', function (i) {
+                    layer.close(i);
+                    var loadIndex = layer.load(2);
+                    admin.req('order/batchVoid', JSON.stringify(obj.goodsIds), function (res) {
+                        layer.close(loadIndex);
+                        if (0 === res.code) {
+                            layer.msg(res.msg, {icon: 1});
+                            insTb.reload({page: {curr: 1}});
+                        } else {
+                            layer.msg(res.msg, {icon: 2, anim: 6});
+                        }
+                    }, 'post');
+                });
+            // }
+        }
+
+
+
+
+        /* 显示修改表单弹窗 */
+        function showEditModel(mData) {
+            admin.open({
+                type: 1,
+                // area: '620px',
+                offset: '20px',
+                title: (mData ? '修改' : '添加') + '信息',
+                content: $('#editFormDialog').html(),
+                success: function (layero, dIndex) {
+                    $(layero).children('.layui-layer-content').css('overflow', 'visible');
+
+                    console.log("showEditModel mData："+JSON.stringify(mData))
+
+                    // 回显表单数据
+                    form.val('editForm', mData);
+
+                    // layui.form.render("select");//重新渲染 固定写法
+
+                    // 表单提交事件
+                    form.on('submit(editSubmit)', function (data) {
+
+                        console.log("JSON.stringify(data.field):"+JSON.stringify(data.field))
+                        var loadIndex = layer.load(2);
+                        admin.req(mData ? 'order/update' : 'order/add', data.field, function (res) {
+                            layer.close(loadIndex);
+                            if (0 === res.code) {
+                                layer.close(dIndex);
+                                layer.msg(res.msg, {icon: 1});
+                                insTb.reload({page: {curr: 1}});
+                            } else {
+                                layer.msg(res.msg, {icon: 2, anim: 6});
+                            }
+                        }, 'post');
+
+                        return false;
+                    });
+
+
+                    // 渲染多选下拉框
+                    /*
+                    var insRoleSel = xmSelect.render({
+                        el: '#userEditRoleSel',
+                        // name: 'userEditRoleSel',
+                        layVerify: 'required',
+                        layVerType: 'tips',
+                        // data: roleList
+                    });
+                    */
+                    // 回显选中角色
+                    /*if (mData && mData.roles) {
+                        insRoleSel.setValue(mData.roles.map(function (item) {
+                            return item.roleId;
+                        }));
+                    }*/
+                    // 禁止弹窗出现滚动条
+                    // $(layero).children('.layui-layer-content').css('overflow', 'visible');
+                }
+            });
+        }
+
+        /* 显示批量发货表单弹窗 */
+        function batchExpressModel(itemIds) {
+            admin.open({
+                type: 1,
+                // area: '620px',
+                offset: '20px',
+                title: (itemIds ? '修改' : '添加') + '信息',
+                content: $('#expressFormDialog').html(),
+                success: function (layero, dIndex) {
+                    $(layero).children('.layui-layer-content').css('overflow', 'visible');
+
+                    console.log("batchExpressModel mData："+JSON.stringify(itemIds))
+
+                    //年月选择器
+                    laydate.render({
+                        elem: '#expressTime'
+                        ,type: 'date'
+                        ,value: getLastDate(new Date().getTime()) // 2020-04-01 - 2020-04-04
+                        ,isInitValue: true
+                        // ,showBottom :false
+                        ,btns: ['confirm']
+                        ,done: function(value, date){
+                            console.log('....1你选择的日期是：' + value + '<br>获得的对象是' + JSON.stringify(date));
+                            $('#expressTime').val(value);
+                        }
+                    });
+
+
+                    // 回显表单数据
+                    // form.val('expressForm', mData);
+
+                    // layui.form.render("select");//重新渲染 固定写法
+
+                    // 表单提交事件
+                    form.on('submit(expressSubmit)', function (data) {
+
+                        console.log("JSON.stringify(data.field):"+JSON.stringify(data.field))
+                        var loadIndex = layer.load(2);
+                        data.field.itemIds = itemIds.toString();
+                        console.log("JSON.stringify(data.field)2:"+JSON.stringify(data.field))
+                        admin.req(itemIds ? 'order/batchExpress' : 'order/batchExpress', data.field, function (res) {
+                            layer.close(loadIndex);
+                            if (0 === res.code) {
+                                layer.close(dIndex);
+                                layer.msg(res.msg, {icon: 1});
+                                insTb.reload({page: {curr: 1}});
+                            } else {
+                                layer.msg(res.msg, {icon: 2, anim: 6});
+                            }
+                        }, 'post');
+
+                        return false;
+                    });
+                }
+            });
+        }
+
+
+        /* 删除 */
+        function doDel(obj) {
+            if (obj.ids) { // 批量删除
+                admin.confirm('确定要删除选中数据吗？', function (i) {
+                    layer.close(i);
+                    var loadIndex = layer.load(2);
+                    admin.req('order/batchDelete', JSON.stringify(obj.ids), function (res) {
+                        layer.close(loadIndex);
+                        if (0 === res.code) {
+                            layer.msg(res.msg, {icon: 1});
+                            insTb.reload({page: {curr: 1}});
+                        } else {
+                            layer.msg(res.msg, {icon: 2, anim: 6});
+                        }
+                    }, 'post');
+                });
+            } else { // 单个删除
+                var loadIndex = layer.load(2);
+                // $.get('cost/delete', {id: obj.data.userId}, function (res) {
+                console.log("obj.data："+JSON.stringify(obj.data))
+                $.get('order/delete', {id: obj.data.id}, function (res) {
+                    layer.close(loadIndex);
+                    if (0 === res.code) {
+                        layer.msg(res.msg, {icon: 1});
+                        insTb.reload({page: {curr: 1}});
+                    } else {
+                        layer.msg(res.msg, {icon: 2, anim: 6});
+                    }
+                });
+            }
+        }
+
+
+        /* 修改用户状态 */
+        form.on('switch(userTbStateCk)', function (obj) {
+            var loadIndex = layer.load(2);
+            // $.post('user/state/update', {
+            $.post('order/update', {
+                id: obj.elem.value,
+                lock_status: obj.elem.checked ? 1 : 0
+            }, function (res) {
+                layer.close(loadIndex);
+                if (0 === res.code) {
+                    layer.msg(res.msg, {icon: 1});
+                } else {
+                    layer.msg(res.msg, {icon: 2, anim: 6});
+                    $(obj.elem).prop('checked', !obj.elem.checked);
+                    form.render('checkbox', $('#channelDataTable').next().attr('lay-filter'));
+                }
+            });
+        });
+
+
+        /* 导入excel */
+        function showImport() {
+            admin.open({
+                type: 1,
+                title: '导入成本',
+                content: ['<div style="padding: 20px 0 10px 0;text-align: center;" class="layui-text">',
+                    '         <div id="userUploadDrag" class="layui-upload-drag" style="margin-bottom: 10px;">',
+                    '            <i class="layui-icon">&#xe681;</i>',
+                    '            <p>点击上传，或将文件拖拽到此处</p>',
+                    '         </div>',
+                    '         <div><a href="${ctxPath}/assets/file/广告渠道成本导入模板.xlsx" target="_blank" download>下载模板</a></div>',
+                    '      </div>'].join(''),
+                success: function (layero, dIndex) {
+                    layui.upload.render({
+                        elem: '#userUploadDrag',
+                        url: 'channelCost/import',
+                        accept: 'file',
+                        exts: 'xls|xlsx',
+                        before: function (obj) {
+                            layer.load(2);
+                        },
+                        done: function (res) {
+                            layer.closeAll('loading');
+                            if (0 === res.code) {
+                                // layer.msg(res.msg, {icon: 1});
+                                layer.close(dIndex);
+                                admin.alert(res.msg.replace(/\r\n/g, '<br/>'), {icon: 1, anim: 6, title: '导入完成'});
+                                insTb.reload({page: {curr: 1}});
+                            } else {
+                                admin.alert(res.msg.replace(/\r\n/g, '<br/>'), {icon: 2, anim: 6, title: '导入失败'});
+                            }
+                        },
+                        error: function () {
+                            layer.msg('导入失败', {icon: 2, anim: 6});
+                            layer.closeAll('loading');
+                        }
+                    });
+                }
+            });
+        }
+
+
+
+/*
+        // 日期范围
+        laydate.render({
+            elem: '#searchTime'
+            ,type: 'date'
+            ,range: true
+            // ,eventElem: '#searchSubmitMenu'
+            // ,trigger: 'click'
+            ,value: getDate(new Date().getTime()-(86400000*6)) +" - "+ getDate(new Date().getTime()-(0)) // 2020-04-01 - 2020-04-04
+            ,isInitValue: true
+            ,done: function(value, date){
+                console.log('你选择的日期是：' + value + '<br>获得的对象是' + JSON.stringify(date));
+                $('#searchTime').val(value);
+
+            }
+        });
+*/
+
+
+        // 日期范围
+        laydate.render({
+            elem: '#searchTime'
+            ,range: true
+            // ,eventElem: '#searchSubmitMenu'
+            // ,trigger: 'click'
+            ,value: getDate(new Date().getTime()-(86400000*6)) +" - "+ getDate(new Date().getTime()-(0)) // 2020-04-01 - 2020-04-04
+            ,isInitValue: true
+            ,max: 0
+            ,done: function(value, date){
+                console.log('你选择的日期是：' + value + '<br>获得的对象是' + JSON.stringify(date));
+
+                // var month = date.getMonth() + 1; //获取当前月份(0-11,0代表1月)
+                var month = new Date().getMonth();
+                month = month<10?"0"+month:month
+
+                $('#searchTime').val(value);
+            }
+            ,extrabtns: [
+                {
+                    id: 'yesterday',
+                    text: '昨天',
+                    range: [new Date(new Date().setDate(new Date().getDate() - 1)), new Date(new Date().setDate(new Date().getDate() - 1))]
+                },
+                {
+                    id: 'lastday-7',
+                    text: '近一周',
+                    range: [new Date(new Date().setDate(new Date().getDate() - 7)), new Date(new Date().setDate(new Date().getDate() - 1))]
+                },
+                {
+                    id: 'lastday-30',
+                    text: '近一月',
+                    range: [new Date(getAMonthAgo(new Date().getTime()-(86400000))), new Date(new Date().setDate(new Date().getDate() - 1))]
+
+                },
+                {
+                    id: 'lastday-365',
+                    text: '近一年',
+                    range: [new Date(getAYearAgo(new Date().getTime()-(86400000))), new Date(new Date().setDate(new Date().getDate() - 1))]
+                }
+            ]
+
+        });
+
+
+        function getDate(timeStamp){
+            var date = new Date(timeStamp);
+
+            var year = date.getFullYear(); //获取完整的年份(4位)
+
+            var month = date.getMonth() + 1; //获取当前月份(0-11,0代表1月)
+            month = month<10?"0"+month:month
+
+            var date = date .getDate(); //获取当前日(1-31)
+            date = date<10?"0"+date:date
+
+            // var result = year + "-" + month + "-" + date;
+            var result = year + "-" + month + "-" + date;
+
+            return result;
+        }
+
+/*
+        function initShop(){
+            var vue = new Vue({
+                el:'#shopApp',
+                data:{
+                    shopList:shopList,
+                    shop:'',
+
+                },
+                methods:{
+                    getValue: function(){
+                    }
+                },
+
+            });
+        }
+*/
+
+
+
+/*
+        $(function(){
+            console.log("init shopList:"+JSON.stringify(shopList))
+            initShop(); // 加载站点
+        })
+*/
+
+
+
+
+    });
+
+
+</script>
+</body>
+</html>

@@ -1,0 +1,139 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.egao.common.system.mapper.IvipdealMapper">
+
+    <select id="select" resultType="java.util.HashMap">
+        select * from pur_ivipdeal i
+        where 1 = 1
+        order by i.create_time desc
+        limit #{page}, #{rows}
+    </select>
+
+    <select id="selectByLockStatus" resultType="java.util.HashMap">
+        select * from pur_ivipdeal i
+        where lock_status = #{lock_status}
+        order by i.create_time desc
+    </select>
+
+
+    <select id="selectCount" resultType="java.lang.Integer">
+        select count(*) from(
+            select * from pur_ivipdeal i
+            where 1 = 1
+        )pc
+    </select>
+
+    <select id="selectById" resultType="java.util.HashMap">
+        select * from pur_ivipdeal where id = #{id}
+    </select>
+
+    <select id="selectByIvipdealId" resultType="java.util.HashMap">
+        select * from pur_ivipdeal where ivipdeal_id = #{ivipdeal_id}
+    </select>
+
+    <select id="selectByItemGroupId" resultType="java.util.HashMap">
+        select * from pur_ivipdeal where item_group_id = #{item_group_id} and LENGTH(trim(title))>0
+    </select>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id" keyColumn="id">
+        <selectKey resultType="long" order="AFTER" keyProperty="id">
+            SELECT LAST_INSERT_ID() as id
+        </selectKey>
+        insert into pur_ivipdeal(ivipdeal_id, item_group_id, title, description, link, image_link, price, availability, conditions, google_product_category, product_type
+        , additional_image_link, sale_price, brand, gender, age_group, size, size_type, shipping, custom_label_0, adwords_redirect, create_time)
+        values(#{ivipdeal_id}, #{item_group_id}, #{title}, #{description}, #{link}, #{image_link}, #{price}, #{availability}, #{conditions}, #{google_product_category}, #{product_type}
+        , #{additional_image_link}, #{sale_price}, #{brand}, #{gender}, #{age_group}, #{size}, #{size_type}, #{shipping}, #{custom_label_0}, #{adwords_redirect}, #{create_time})
+    </insert>
+
+    <update id="update">
+        update pur_ivipdeal
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="ivipdeal_id!=null and ivipdeal_id!=''">
+                ivipdeal_id = #{ivipdeal_id},
+            </if>
+            <if test="item_group_id!=null and item_group_id!=''">
+                item_group_id = #{item_group_id},
+            </if>
+            <if test="title!=null and title!=''">
+                title = #{title},
+            </if>
+            <if test="description!=null and description!=''">
+                description = #{description},
+            </if>
+            <if test="link!=null and link!=''">
+                link = #{link},
+            </if>
+            <if test="image_link!=null and image_link!=''">
+                image_link = #{image_link},
+            </if>
+            <if test="price!=null and price!=''">
+                price = #{price},
+            </if>
+            <if test="availability!=null and availability!=''">
+                availability = #{availability},
+            </if>
+            <if test="condition!=null and condition!=''">
+                condition = #{condition},
+            </if>
+            <if test="google_product_category!=null and google_product_category!=''">
+                google_product_category = #{google_product_category},
+            </if>
+            <if test="product_type!=null and product_type!=''">
+                product_type = #{product_type},
+            </if>
+            <if test="additional_image_link!=null and additional_image_link!=''">
+                additional_image_link = #{additional_image_link},
+            </if>
+            <if test="sale_price!=null and sale_price!=''">
+                sale_price = #{sale_price},
+            </if>
+            <if test="brand!=null and brand!=''">
+                brand = #{brand},
+            </if>
+            <if test="gender!=null and gender!=''">
+                gender = #{gender},
+            </if>
+            <if test="age_group!=null and age_group!=''">
+                age_group = #{age_group},
+            </if>
+            <if test="size!=null and size!=''">
+                size = #{size},
+            </if>
+            <if test="size_type!=null and size_type!=''">
+                size_type = #{size_type},
+            </if>
+            <if test="shipping!=null and shipping!=''">
+                shipping = #{shipping},
+            </if>
+            <if test="custom_label_0!=null and custom_label_0!=''">
+                custom_label_0 = #{custom_label_0},
+            </if>
+            <if test="adwords_redirect!=null and adwords_redirect!=''">
+                adwords_redirect = #{adwords_redirect},
+            </if>
+            <if test="lock_status!=null and lock_status!=''">
+                lock_status = #{lock_status},
+            </if>
+            <if test="create_time!=null and create_time!=''">
+                create_time = #{create_time}
+            </if>
+        </trim>
+        where id = #{id}
+    </update>
+
+    <update id="updateLockStatus">
+        update pur_ivipdeal set lock_status = #{lock_status} where id = #{id}
+    </update>
+
+    <delete id="deleteById">
+        delete from pur_ivipdeal where id = #{id}
+    </delete>
+
+    <delete id="deleteAll">
+        delete from pur_ivipdeal
+    </delete>
+
+
+
+
+</mapper>

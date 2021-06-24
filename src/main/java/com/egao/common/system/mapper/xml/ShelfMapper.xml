@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.egao.common.system.mapper.ShelfMapper">
+
+    <select id="select" resultType="java.util.HashMap">
+        select * from pur_shelf s
+        where 1 = 1
+        order by id desc
+        limit #{page}, #{rows}
+    </select>
+
+    <select id="selectCount" resultType="java.lang.Integer">
+        select count(*) from(
+            select * from pur_shelf s
+            where 1 = 1
+        )smc
+    </select>
+
+    <select id="selectById" resultType="java.util.HashMap">
+        select * from pur_shelf where id = #{id}
+    </select>
+
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id" keyColumn="id">
+        <selectKey resultType="long" order="AFTER" keyProperty="id">
+            SELECT LAST_INSERT_ID() as id
+        </selectKey>
+        insert into pur_shelf(shelf_id)
+        values(#{shelf_id})
+    </insert>
+
+
+    <update id="update">
+        update pur_shelf
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="shelf_id!=null and shelf_id!=''">
+                shelf_id = #{shelf_id}
+            </if>
+        </trim>
+        where id = #{id}
+    </update>
+
+
+    <delete id="deleteById">
+        delete from pur_shelf where id = #{id}
+    </delete>
+
+
+    <insert id="insertOrderShelf">
+        insert into pur_order_shelf(outbound_order_id, goods_id, shelf_id)
+        values(#{outbound_order_id}, #{goods_id}, #{shelf_id})
+    </insert>
+
+    <select id="selectCanAllotShelf" resultType="java.util.HashMap">
+        select s.*,os.shelf_id order_shelf_id from pur_shelf s left join pur_order_shelf os on os.shelf_id = s.shelf_id
+        where os.shelf_id IS NULL
+        order by s.shelf_id
+    </select>
+
+    <select id="selectByOutboundOrderId" resultType="java.util.HashMap">
+        select s.* from pur_order_shelf s where s.outbound_order_id = #{outbound_order_id}
+    </select>
+
+    <delete id="deleteByOutboundOrderId">
+        delete from pur_order_shelf where outbound_order_id = #{outbound_order_id}
+    </delete>
+
+
+
+
+
+</mapper>

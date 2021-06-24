@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.egao.common.system.mapper.SupplierMarkMapper">
+
+    <select id="select" resultType="java.util.HashMap">
+        select * from pur_supplier_mark sm
+        where 1 = 1
+        <if test="supplier_id!=null and supplier_id!=''">
+            and sm.supplier_id = #{supplier_id}
+        </if>
+        <if test="supplier_name!=null and supplier_name!=''">
+            and sm.supplier_name = #{supplier_name}
+        </if>
+        order by id desc
+        limit #{page}, #{rows}
+    </select>
+
+    <select id="selectCount" resultType="java.lang.Integer">
+        select count(*) from(
+            select * from pur_supplier_mark sm
+            where 1 = 1
+            <if test="supplier_id!=null and supplier_id!=''">
+                and sm.supplier_id = #{supplier_id}
+            </if>
+            <if test="supplier_name!=null and supplier_name!=''">
+                and sm.supplier_name = #{supplier_name}
+            </if>
+        )smc
+    </select>
+
+    <select id="selectById" resultType="java.util.HashMap">
+        select * from pur_supplier_mark where id = #{id}
+    </select>
+
+    <select id="selectAll" resultType="java.util.HashMap">
+        select * from pur_supplier_mark
+    </select>
+
+
+
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id" keyColumn="id">
+        <selectKey resultType="long" order="AFTER" keyProperty="id">
+            SELECT LAST_INSERT_ID() as id
+        </selectKey>
+        insert into pur_supplier_mark(supplier_id, supplier_name, supplier_code)
+        values(#{supplier_id}, #{supplier_name}, #{supplier_code})
+    </insert>
+
+    <update id="update">
+        update pur_supplier_mark
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="supplier_id!=null and supplier_id!=''">
+                supplier_id = #{supplier_id},
+            </if>
+            <if test="supplier_name!=null and supplier_name!=''">
+                supplier_name = #{supplier_name},
+            </if>
+            <if test="supplier_code!=null and supplier_code!=''">
+                supplier_code = #{supplier_code}
+            </if>
+        </trim>
+        where id = #{id}
+    </update>
+
+    <delete id="deleteById">
+        delete from pur_supplier_mark where id = #{id}
+    </delete>
+
+
+</mapper>

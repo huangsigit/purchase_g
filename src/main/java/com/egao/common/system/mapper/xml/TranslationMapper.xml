@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.egao.common.system.mapper.TranslationMapper">
+
+    <select id="select" resultType="java.util.HashMap">
+        select * from pur_translation t
+        where 1 = 1
+        <if test="type!=null and type!=''">
+            and t.type = #{type}
+        </if>
+        <if test="local_language!=null and local_language!=''">
+            and t.local_language = #{local_language}
+        </if>
+        <if test="chinese!=null and chinese!=''">
+            and t.chinese = #{chinese}
+        </if>
+        limit #{page}, #{rows}
+    </select>
+
+    <select id="selectCount" resultType="java.lang.Integer">
+        select count(*) from(
+            select * from pur_translation t
+            where 1 = 1
+            <if test="type!=null and type!=''">
+                and t.type = #{type}
+            </if>
+            <if test="local_language!=null and local_language!=''">
+                and t.local_language = #{local_language}
+            </if>
+            <if test="chinese!=null and chinese!=''">
+                and t.chinese = #{chinese}
+            </if>
+        )t
+    </select>
+
+    <select id="selectAll" resultType="java.util.HashMap">
+        select * from pur_translation t
+    </select>
+
+
+    <select id="selectById" resultType="java.util.HashMap">
+        select * from pur_translation where id = #{id}
+    </select>
+
+    <select id="selectByLocalLanguage" resultType="java.util.HashMap">
+        select * from pur_translation where local_language = #{local_language}
+    </select>
+
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id" keyColumn="id">
+        <selectKey resultType="long" order="AFTER" keyProperty="id">
+            SELECT LAST_INSERT_ID() as id
+        </selectKey>
+        insert into pur_translation(local_language, chinese, type)
+        values(#{local_language}, #{chinese}, #{type})
+    </insert>
+
+    <update id="update">
+        update pur_translation
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="local_language!=null and local_language!=''">
+                local_language = #{local_language},
+            </if>
+            <if test="chinese!=null and chinese!=''">
+                chinese = #{chinese},
+            </if>
+            <if test="type!=null and type!=''">
+                type = #{type}
+            </if>
+        </trim>
+        where id = #{id}
+    </update>
+
+    <delete id="deleteById">
+        delete from pur_translation where id = #{id}
+    </delete>
+
+
+</mapper>

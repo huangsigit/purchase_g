@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.egao.common.system.mapper.SkuMapper">
+
+    <select id="select" resultType="java.util.HashMap">
+        select * from pur_sku s
+        where 1 = 1
+        order by id desc
+        limit #{page}, #{rows}
+    </select>
+
+
+    <select id="selectCount" resultType="java.lang.Integer">
+        select count(*) from(
+            select * from pur_sku s
+            where 1 = 1
+        )smc
+    </select>
+
+
+    <select id="selectById" resultType="java.util.HashMap">
+        select * from pur_sku where id = #{id}
+    </select>
+
+
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id" keyColumn="id">
+        <selectKey resultType="long" order="AFTER" keyProperty="id">
+            SELECT LAST_INSERT_ID() as id
+        </selectKey>
+        insert into pur_sku(user_id, goods_no, supplier_id, colour, size, status)
+        values(#{user_id}, #{goods_no}, #{supplier_id}, #{colour}, #{size}, #{status})
+    </insert>
+
+
+    <update id="updateStatusBySku">
+        update pur_sku
+        set status = #{status}
+        where goods_no = #{goods_no} and supplier_id = #{supplier_id}
+        and colour = #{colour} and size = #{size}
+    </update>
+
+
+    <delete id="deleteById">
+        delete from pur_sku where id = #{id}
+    </delete>
+
+
+    <delete id="deleteBySku">
+        delete from pur_sku where goods_no = #{goods_no} and supplier_id = #{supplier_id}
+        and colour = #{colour} and size = #{size}
+    </delete>
+
+
+    <select id="selectBySku" resultType="java.util.HashMap">
+        select * from pur_sku
+        where goods_no = #{goods_no} and supplier_id = #{supplier_id}
+        and colour = #{colour} and size = #{size}
+    </select>
+
+
+</mapper>

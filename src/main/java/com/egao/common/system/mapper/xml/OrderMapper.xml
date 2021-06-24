@@ -1,0 +1,377 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.egao.common.system.mapper.OrderMapper">
+
+    <select id="select" resultType="java.util.HashMap">
+        select otsmoe.*,er.express_time,er.fees,er.number,er.express_number from(
+            select otsm.*,oe.express_id from (
+                select otsm.*,q.purchase_price,q.price_status from (
+                    select ot.* from (
+                        select o.* from pur_order o
+                        where 1 = 1
+                        <if test="platform_order_number!=null and platform_order_number!=''">
+                            and o.platform_order_number = #{platform_order_number}
+                        </if>
+                        <if test="logist_num!=null and logist_num!=''">
+                            and o.logist_num = #{logist_num}
+                        </if>
+                        <if test="purchase_status!=null and purchase_status!=''">
+                            and o.purchase_status = #{purchase_status}
+                        </if>
+                        <if test="outbound_order_no!=null and outbound_order_no!=''">
+                            and o.outbound_order_no = #{outbound_order_no}
+                        </if>
+                        <if test="shop_id!=null and shop_id!=''">
+                            and o.shop_id = #{shop_id}
+                        </if>
+                        <if test="goods_no!=null and goods_no!=''">
+                            and o.goods_no like '%${goods_no}%'
+                        </if>
+                        <if test="startTime!=null and endTime!=''">
+                            and o.outCreate_time BETWEEN #{startTime} and #{endTime}
+                        </if>
+
+                    )ot
+                )otsm LEFT JOIN pur_quote q on q.goods_no = otsm.goods_no and q.supplier_id = otsm.supplier_id and q.quote_time = otsm.order_time
+            )otsm LEFT JOIN pur_order_express oe on oe.item_id = otsm.item_id
+        )otsmoe LEFT JOIN pur_express_record er on er.id = otsmoe.express_id
+        order by otsmoe.outCreate_time desc
+        limit #{page}, #{rows}
+    </select>
+
+
+    <select id="selectCount" resultType="java.lang.Integer">
+        select count(*) from(
+            select * from pur_order o
+            where 1 = 1
+            <if test="platform_order_number!=null and platform_order_number!=''">
+                and o.platform_order_number = #{platform_order_number}
+            </if>
+            <if test="logist_num!=null and logist_num!=''">
+                and o.logist_num = #{logist_num}
+            </if>
+            <if test="purchase_status!=null and purchase_status!=''">
+                and o.purchase_status = #{purchase_status}
+            </if>
+            <if test="outbound_order_no!=null and outbound_order_no!=''">
+                and o.outbound_order_no = #{outbound_order_no}
+            </if>
+            <if test="shop_id!=null and shop_id!=''">
+                and o.shop_id = #{shop_id}
+            </if>
+            <if test="goods_no!=null and goods_no!=''">
+                and o.goods_no = #{goods_no}
+            </if>
+            <if test="startTime!=null and endTime!=''">
+                and o.outCreate_time BETWEEN #{startTime} and #{endTime}
+            </if>
+        )o
+    </select>
+
+    <select id="selectById" resultType="java.util.HashMap">
+        select * from pur_order where id = #{id}
+    </select>
+
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id" keyColumn="id">
+        <selectKey resultType="long" order="AFTER" keyProperty="id">
+            SELECT LAST_INSERT_ID() as id
+        </selectKey>
+        insert into pur_order(outCreate_time, order_time, outbound_order_no, shop_name, goods_no, sku, supplier_id, colour, size, num, total_num, platform_order_number, logist_num, lock_status, outbound_order_id, goods_id, shop_id, item_id)
+        values(#{outCreate_time}, #{order_time}, #{outbound_order_no}, #{shop_name}, #{goods_no}, #{sku}, #{supplier_id}, #{colour}, #{size}, #{num}, #{total_num}, #{platform_order_number}, #{logist_num}, #{lock_status}, #{outbound_order_id}, #{goods_id}, #{shop_id}, #{item_id})
+    </insert>
+
+    <update id="update">
+        update pur_order
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="outCreate_time!=null and outCreate_time!=''">
+                outCreate_time = #{outCreate_time},
+            </if>
+            <if test="outbound_order_no!=null and outbound_order_no!=''">
+                outbound_order_no = #{outbound_order_no},
+            </if>
+            <if test="shop_name!=null and shop_name!=''">
+                shop_name = #{shop_name},
+            </if>
+            <if test="goods_no!=null and goods_no!=''">
+                goods_no = #{goods_no},
+            </if>
+            <if test="supplier_id!=null and supplier_id!=''">
+                supplier_id = #{supplier_id},
+            </if>
+            <if test="colour!=null and colour!=''">
+                colour = #{colour},
+            </if>
+            <if test="size!=null and size!=''">
+                size = #{size},
+            </if>
+            <if test="num!=null and num!=''">
+                num = #{num},
+            </if>
+            <if test="platform_order_number!=null and platform_order_number!=''">
+                platform_order_number = #{platform_order_number},
+            </if>
+            <if test="logist_num!=null and logist_num!=''">
+                logist_num = #{logist_num},
+            </if>
+            <if test="lock_status!=null and lock_status!=''">
+                lock_status = #{lock_status},
+            </if>
+            <if test="outbound_order_id!=null and outbound_order_id!=''">
+                outbound_order_id = #{outbound_order_id},
+            </if>
+            <if test="goods_id!=null and goods_id!=''">
+                goods_id = #{goods_id},
+            </if>
+            <if test="item_id!=null and item_id!=''">
+                item_id = #{item_id}
+            </if>
+        </trim>
+        where id = #{id}
+    </update>
+
+    <delete id="deleteById">
+        delete from pur_order where id = #{id}
+    </delete>
+
+    <select id="selectByOutboundOrderNo" resultType="java.util.HashMap">
+        select * from pur_order where outbound_order_no = #{outbound_order_no}
+    </select>
+
+    <select id="selectByGoodsId" resultType="java.util.HashMap">
+        select * from pur_order where outbound_order_id = #{outbound_order_id} and goods_id = #{goods_id}
+    </select>
+
+    <select id="selectByItemId" resultType="java.util.HashMap">
+        select * from pur_order where item_id = #{item_id}
+    </select>
+
+    <select id="selectAll" resultType="java.util.HashMap">
+        select * from pur_order o
+        where 1 = 1
+        <if test="platform_order_number!=null and platform_order_number!=''">
+            and o.platform_order_number = #{platform_order_number}
+        </if>
+        <if test="logist_num!=null and logist_num!=''">
+            and o.logist_num = #{logist_num}
+        </if>
+        order by o.outCreate_time desc
+        limit #{page}, #{rows}
+    </select>
+
+    <update id="updatePurchaseStatus">
+        update pur_order set purchase_status = #{purchase_status} where id = #{id}
+    </update>
+
+    <update id="updatePurchaseStatusByItemId">
+        update pur_order set purchase_status = #{purchase_status} where item_id = #{item_id}
+    </update>
+
+    <update id="updatePurchaseStatusByGoodsId">
+        update pur_order set purchase_status = #{purchase_status} where outbound_order_id = #{outbound_order_id} and goods_id = #{goods_id}
+    </update>
+
+    <select id="selectShop" resultType="java.util.HashMap">
+        select o.shop_id,o.shop_name from pur_order o GROUP BY o.shop_id
+    </select>
+
+
+    <!--pur_order_extend-->
+    <insert id="insertOrderExtend">
+        insert into pur_order_extend(outbound_order_id, goods_id, purchase_status, void_status)
+        values(#{outbound_order_id}, #{goods_id}, #{purchase_status}, #{void_status})
+    </insert>
+
+    <update id="updateOrderExtend">
+        update pur_order_extend
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="purchase_status!=null and purchase_status!=''">
+                purchase_status = #{purchase_status},
+            </if>
+            <if test="void_status!=null and void_status!=''">
+                void_status = #{void_status}
+            </if>
+        </trim>
+        where outbound_order_id = #{outbound_order_id} and goods_id = #{goods_id}
+    </update>
+
+    <select id="selectByOutCreateTime" resultType="java.util.HashMap">
+        select * from pur_order o where outCreate_time BETWEEN #{startTime} and #{endTime}
+    </select>
+
+    <select id="selectBySupplierIdAndGoogsNo" resultType="java.util.HashMap">
+        select * from pur_order o where o.supplier_id = #{supplier_id} and o.goods_no = #{goods_no} and o.colour = #{colour} and o.size = #{size} and o.order_time = #{order_time}
+    </select>
+
+    <select id="selectOrderSummary" resultType="java.util.HashMap">
+        select osmt.*,q.purchase_price,q.price_status,q.id quote_id from (
+            select osm.*,t.chinese chinese_colour from(
+                select o.supplier_id,o.goods_no,o.colour,o.size,sum(o.num) num,o.purchase_status,sm.supplier_name,o.order_time from pur_order o LEFT JOIN pur_supplier_mark sm on sm.supplier_id = o.supplier_id
+                where o.supplier_id is not null
+                <if test="purchase_status!=null">
+                    and o.purchase_status = #{purchase_status}
+                </if>
+                GROUP BY o.supplier_id,o.goods_no,o.colour,o.size,o.num,o.purchase_status,o.order_time
+            )osm LEFT JOIN pur_translation t on t.local_language = osm.colour
+            GROUP BY osm.supplier_id,osm.goods_no,osm.colour,osm.size,osm.num,osm.purchase_status
+        )osmt LEFT JOIN pur_quote q on q.supplier_id = osmt.supplier_id and q.goods_no = osmt.goods_no and q.colour = osmt.colour and q.size = osmt.size and q.quote_time = osmt.order_time
+        limit #{page}, #{rows}
+    </select>
+
+
+<!--
+    select osm.*,t.chinese chinese_colour from(
+    select o.supplier_id,o.goods_no,o.colour,o.size,sum(o.num) num,o.purchase_status,sm.supplier_name from pur_order o LEFT JOIN pur_supplier_mark sm on sm.supplier_id = o.supplier_id
+    where o.supplier_id is not null
+    <if test="purchase_status!=null">
+        and o.purchase_status = #{purchase_status}
+    </if>
+    GROUP BY o.supplier_id,o.goods_no,o.colour,o.size,o.num,o.purchase_status
+    )osm LEFT JOIN pur_translation t on t.local_language = osm.colour
+    GROUP BY osm.supplier_id,osm.goods_no,osm.colour,osm.size,osm.num,osm.purchase_status
+    limit #{page}, #{rows}
+-->
+
+
+    <select id="selectOrderSummaryCount" resultType="java.lang.Integer">
+        select count(*) from(
+            select supplier_id,goods_no,colour,size,sum(num),purchase_status from pur_order o
+            where supplier_id is not null
+            <if test="purchase_status!=null">
+                and purchase_status = #{purchase_status}
+            </if>
+            GROUP BY supplier_id,goods_no,colour,size,num,purchase_status
+        )oo
+    </select>
+
+
+
+    <select id="selectFinance" resultType="java.util.HashMap">
+        select otsmoe.*,er.express_time,er.fees,er.number,er.express_number from(
+            select otsm.*,oe.express_id from (
+                select otsm.*,q.purchase_price,q.price_status from (
+                select ot.* from (
+                    select o.* from (select o.* from pur_order o
+                        where o.purchase_status &lt; 4
+                        <if test="platform_order_number!=null and platform_order_number!=''">
+                            and o.platform_order_number = #{platform_order_number}
+                        </if>
+                        <if test="logist_num!=null and logist_num!=''">
+                            and o.logist_num = #{logist_num}
+                        </if>
+                        <if test="purchase_status!=null and purchase_status!=''">
+                            and o.purchase_status = #{purchase_status}
+                        </if>
+                        <if test="outbound_order_no!=null and outbound_order_no!=''">
+                            and o.outbound_order_no = #{outbound_order_no}
+                        </if>
+                        <if test="shop_id!=null and shop_id!=''">
+                            and o.shop_id = #{shop_id}
+                        </if>
+                        <if test="goods_no!=null and goods_no!=''">
+                            and o.goods_no = #{goods_no}
+                        </if>
+                        <if test="startTime!=null and endTime!=''">
+                            and o.outCreate_time BETWEEN #{startTime} and #{endTime}
+                        </if>
+                    )o
+                    where 1 = 1
+                )ot
+                )otsm LEFT JOIN pur_quote q on q.goods_no = otsm.goods_no and q.supplier_id = otsm.supplier_id and q.quote_time = otsm.order_time
+            )otsm LEFT JOIN pur_order_express oe on oe.item_id = otsm.item_id
+        )otsmoe LEFT JOIN pur_express_record er on er.id = otsmoe.express_id
+        order by otsmoe.outCreate_time desc
+        limit #{page}, #{rows}
+    </select>
+
+    <select id="selectFinanceCount" resultType="java.lang.Integer">
+        select count(*) from (
+            select o.* from pur_order o
+            where o.purchase_status &lt; 4
+            <if test="platform_order_number!=null and platform_order_number!=''">
+                and o.platform_order_number = #{platform_order_number}
+            </if>
+            <if test="logist_num!=null and logist_num!=''">
+                and o.logist_num = #{logist_num}
+            </if>
+            <if test="purchase_status!=null and purchase_status!=''">
+                and o.purchase_status = #{purchase_status}
+            </if>
+            <if test="outbound_order_no!=null and outbound_order_no!=''">
+                and o.outbound_order_no = #{outbound_order_no}
+            </if>
+            <if test="shop_id!=null and shop_id!=''">
+                and o.shop_id = #{shop_id}
+            </if>
+            <if test="goods_no!=null and goods_no!=''">
+                and o.goods_no = #{goods_no}
+            </if>
+            <if test="startTime!=null and endTime!=''">
+                and o.outCreate_time BETWEEN #{startTime} and #{endTime}
+            </if>
+        )ocount
+    </select>
+
+    <select id="selectSku" resultType="java.util.HashMap">
+        select os.*,t.chinese from (
+            select o.*,s.status sku_status from pur_order o LEFT JOIN pur_sku s
+            on o.goods_no = s.goods_no and o.supplier_id = s.supplier_id and o.colour = s.colour and o.size = s.size
+            where o.purchase_status = #{purchase_status}
+            <if test="supplier_id!=null and supplier_id!=''">
+                and o.supplier_id = #{supplier_id}
+            </if>
+            group by o.goods_no,o.supplier_id,o.colour,o.size
+        )os LEFT JOIN pur_translation t on t.local_language = os.colour
+        order by os.id desc
+        limit #{page}, #{rows}
+    </select>
+
+
+    <select id="selectSkuCount" resultType="java.lang.Integer">
+        select count(*) from (
+            select * from pur_order o where o.purchase_status = #{purchase_status}
+            <if test="supplier_id!=null and supplier_id!=''">
+                and o.supplier_id = #{supplier_id}
+            </if>
+            group by o.goods_no,o.supplier_id,o.colour,o.size
+        )oc
+    </select>
+
+
+    <select id="selectOrderBySku" resultType="java.util.HashMap">
+        select o.*,os.shelf_id from pur_order o LEFT JOIN pur_order_shelf os
+        on os.outbound_order_id = o.outbound_order_id and os.goods_id = o.goods_id
+        where o.purchase_status = #{purchase_status}
+        and o.goods_no = #{goods_no}
+        and o.supplier_id = #{supplier_id}
+        and o.colour = #{colour}
+        and o.size = #{size}
+        order by o.id desc
+        limit #{page}, #{rows}
+    </select>
+
+
+    <select id="selectOrderCountBySku" resultType="java.lang.Integer">
+        select count(*) from (
+            select * from pur_order o where o.purchase_status = #{purchase_status}
+            and o.goods_no = #{goods_no}
+            and o.supplier_id = #{supplier_id}
+            and o.colour = #{colour}
+            and o.size = #{size}
+        )oc
+    </select>
+
+
+    <update id="updatePickingStatusById">
+        update pur_order set picking_status = #{picking_status}
+        where id = #{id}
+    </update>
+
+    <select id="selectPurchaseOrderByOutboundOrderId" resultType="java.util.HashMap">
+        select * from pur_order o where o.purchase_status = 1
+        and o.outbound_order_id = #{outbound_order_id}
+    </select>
+
+
+
+</mapper>
